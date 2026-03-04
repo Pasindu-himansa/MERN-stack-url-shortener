@@ -3,6 +3,28 @@ const router = express.Router();
 const { nanoid } = require("nanoid");
 const Url = require("../models/url");
 
+// History: latest 20 shortened urls
+router.get("/history", async (req, res) => {
+  try {
+    const items = await Url.find()
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .select("originalUrl shortCode clicks createdAt");
+
+    res.json(
+      items.map((x) => ({
+        originalUrl: x.originalUrl,
+        shortCode: x.shortCode,
+        shortUrl: `${process.env.BASE_URL}/${x.shortCode}`,
+        clicks: x.clicks,
+        createdAt: x.createdAt,
+      })),
+    );
+  } catch (e) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Create short url
 router.post("/shorten", async (req, res) => {
   try {
